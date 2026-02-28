@@ -8,12 +8,14 @@ import userRouter from "./Modules/Users/user.controller.js";
 //DB
 import dbConnection from "./DB/db.connection.js";
 //Middlewares
+import { generalLimiter, authLimiter } from './Middlewares/rate-limiter.middleware.js';
 
 
 const app = express();
 
 // Parser middleware
 app.use(express.json());
+app.use("/uploads", express.static("uploads"));
 
 
 // Some CORS options
@@ -32,6 +34,7 @@ const corsOptions = {
 
 // Use some Security middlewares
 app.use(cors(corsOptions))
+app.use(generalLimiter)
 app.use(helmet())
 
 // database connection
@@ -61,8 +64,7 @@ app.use((req, res) => {
     res.status(404).send("Page Not found!");
 });
 
-// Start server
+// Start server 
 app.listen(process.env.PORT, () => {
-    console.log("Server is running on port 3000");
+    console.log("Server is running on port ", process.env.PORT);
 });
-

@@ -11,7 +11,7 @@ const uniqueString = customAlphabet('1234567890abcdef', 5)
 
 export const signUpService = async (req, res) => {
 
-    const { firstname, lastname, email, password, age, gender, phoneNumber } = req.body
+    const { firstname, lastname, email, password, dateOfBirth, gender, phoneNumber } = req.body
 
     const isUserExist = await User.findOne({ email, provider: providerEnum.LOCAL })
 
@@ -32,7 +32,7 @@ export const signUpService = async (req, res) => {
         lastname,
         email,
         password: hashedPassword,
-        age,
+        dateOfBirth,
         gender,
         phoneNumber: encryptedPhoneNumber,
         otps: { confirmation: hashSync(otp, +process.env.SALT_ROUNDS) }
@@ -88,7 +88,23 @@ export const signinService = async (req, res) => {
         }
 
     )
-    return res.status(200).json({ message: "User signed in successfully", accesstoken, refreshtoken })
+
+  
+    const safeUser = {
+        fullname: user.fullname,
+        email: user.email,
+        gender: user.gender,
+        dateOfBirth: user.dateOfBirth,
+        role: user.role,
+        profilePicture: user.profilePicture
+    };
+
+    return res.status(200).json({
+        message: "User signed in successfully",
+        accesstoken,
+        refreshtoken,
+        user: safeUser
+    })
 }
 
 

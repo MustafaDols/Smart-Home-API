@@ -18,13 +18,12 @@ const userSchema = new mongoose.Schema(
             required: true,
             lowercase: true
         },
-        age: {
-            type: Number,
-            minLength: [18, "Age must be at least 18 years old"],
-            maxLength: [100, "Age must be at most 100 years old"],
+        dateOfBirth: {
+            type: Date,
+            required: true,
             index: {
-                name: "idx_age"
-            }//path level
+                name: "idx_date_of_birth"
+            } // path level
         },
         gender: {
             type: String,

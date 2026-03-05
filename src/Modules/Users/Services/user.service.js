@@ -96,6 +96,7 @@ export const signinService = async (req, res) => {
         gender: user.gender,
         dateOfBirth: user.dateOfBirth,
         role: user.role,
+        phoneNumber: user.phoneNumber,
         profilePicture: user.profilePicture
     };
 

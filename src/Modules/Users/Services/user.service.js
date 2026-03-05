@@ -1,6 +1,6 @@
 import { compareSync, hashSync } from "bcrypt";
 import User from "../../../DB/Models/user.model.js";
-import { assymetricEncryption } from "../../../Utils/encryption.utils.js";
+import { assymetricEncryption,assymetricDecryption } from "../../../Utils/encryption.utils.js";
 import { v4 as uuidv4 } from "uuid"
 import { generateToken } from "../../../Utils/tokens.utils.js";
 import { providerEnum } from "../../../Common/enums/user.enum.js";
@@ -89,14 +89,15 @@ export const signinService = async (req, res) => {
 
     )
 
-  
+  const decryptedPhoneNumber = assymetricDecryption(user.phoneNumber)
+
     const safeUser = {
         fullname: user.fullname,
         email: user.email,
         gender: user.gender,
         dateOfBirth: user.dateOfBirth,
         role: user.role,
-        phoneNumber: user.phoneNumber,
+        phoneNumber: decryptedPhoneNumber,
         profilePicture: user.profilePicture
     };
 

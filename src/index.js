@@ -5,6 +5,9 @@ import cors from "cors";
 import helmet from "helmet";
 //Modules
 import userRouter from "./Modules/Users/user.controller.js";
+import homeRouter from "./Modules/Homes/home.cotroller.js";
+import devcieRouter from "./Modules/Devices/device.controller.js";
+
 //DB
 import dbConnection from "./DB/db.connection.js";
 //Middlewares
@@ -42,6 +45,8 @@ dbConnection();
 
 // Handle routes
 app.use("/users", userRouter);
+app.use("/homes", homeRouter);
+app.use("/devices", devcieRouter);
 
 
 // Error handling middleware

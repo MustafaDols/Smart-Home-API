@@ -4,7 +4,8 @@
   "main": "src/index.js",
   "type": "module",
   "scripts": {
-    "start": "node ."
+    "start": "node .",
+    "dev" : "nodemon ."
   },
   "keywords": [],
   "author": "Mustafa M. Abd-elaziz",
@@ -26,6 +27,7 @@
     "mysql2": "^3.14.1",
     "nanoid": "^5.1.5",
     "nodemailer": "^7.0.5",
+    "socket.io": "^4.8.3",
     "uuid": "^11.1.0"
   },
   "devDependencies": {

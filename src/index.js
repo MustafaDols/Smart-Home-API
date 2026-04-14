@@ -72,7 +72,7 @@ app.use(async (error, req, res, next) => {
 
 // Not found middleware
 app.use((req, res) => {
-    res.status(404).send("Page Not found!");
+    res.status(404).json({ message: "Page Not found!" });
 });
 
 // Start server 

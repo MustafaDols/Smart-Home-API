@@ -2,7 +2,6 @@ import Alert from "../../DB/Models/alert.model.js";
 import Device from "../../DB/Models/device.model.js";
 import { getIO } from "../../config/socket.js";
 
-// Get all alerts for the logged-in user
 export const getAllAlerts = async (req, res) => {
     try {
         const userId = req.loggedInUser.user._id;
@@ -22,7 +21,6 @@ export const getAllAlerts = async (req, res) => {
     }
 };
 
-// Get unread alerts for the logged-in user
 export const getUnreadAlerts = async (req, res) => {
     try {
         const userId = req.loggedInUser.user._id;
@@ -42,13 +40,11 @@ export const getUnreadAlerts = async (req, res) => {
     }
 };
 
-// Get alerts by device ID
 export const getAlertsByDeviceId = async (req, res) => {
     try {
         const { deviceId } = req.params;
         const userId = req.loggedInUser.user._id;
 
-        // Verify device belongs to user
         const device = await Device.findOne({ _id: deviceId, userId });
         if (!device) {
             return res.status(404).json({ message: "Device not found or unauthorized" });
@@ -69,7 +65,6 @@ export const getAlertsByDeviceId = async (req, res) => {
     }
 };
 
-// Mark alert as read
 export const markAlertAsRead = async (req, res) => {
     try {
         const { id } = req.params;
@@ -85,7 +80,6 @@ export const markAlertAsRead = async (req, res) => {
             return res.status(404).json({ message: "Alert not found or unauthorized" });
         }
 
-        // Broadcast via socket.io
         const io = getIO();
         io.to(userId.toString()).emit("alert-updated", alert);
 
@@ -98,7 +92,7 @@ export const markAlertAsRead = async (req, res) => {
     }
 };
 
-// Resolve alert
+
 export const resolveAlert = async (req, res) => {
     try {
         const { id } = req.params;
@@ -117,7 +111,7 @@ export const resolveAlert = async (req, res) => {
             return res.status(404).json({ message: "Alert not found or unauthorized" });
         }
 
-        // Broadcast via socket.io
+
         const io = getIO();
         io.to(userId.toString()).emit("alert-resolved", alert);
 
@@ -130,7 +124,7 @@ export const resolveAlert = async (req, res) => {
     }
 };
 
-// Delete alert
+
 export const deleteAlert = async (req, res) => {
     try {
         const { id } = req.params;
@@ -142,7 +136,7 @@ export const deleteAlert = async (req, res) => {
             return res.status(404).json({ message: "Alert not found or unauthorized" });
         }
 
-        // Broadcast via socket.io
+
         const io = getIO();
         io.to(userId.toString()).emit("alert-deleted", { alertId: id });
 
@@ -154,7 +148,7 @@ export const deleteAlert = async (req, res) => {
     }
 };
 
-// Get alerts by severity
+
 export const getAlertsBySeverity = async (req, res) => {
     try {
         const { severity } = req.params;

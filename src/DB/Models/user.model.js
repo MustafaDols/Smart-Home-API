@@ -103,7 +103,7 @@ const userSchema = new mongoose.Schema(
 });
 
 //Compound index Schema level
-userSchema.index({ firstname: 1, lastname: 1 }, { name: "idx_first_last_name_unique", unique: true });
+userSchema.index({ firstname: 1, lastname: 1 },{ name: "idx_first_last_name"});
 
 //create virtuals
 userSchema.virtual("Messages", {

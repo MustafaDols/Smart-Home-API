@@ -105,7 +105,7 @@ const userSchema = new mongoose.Schema(
 //Compound index Schema level
 userSchema.index({ firstname: 1, lastname: 1 },{ name: "idx_first_last_name"});
 
-//create virtuals
+//create virtuals  
 userSchema.virtual("Messages", {
     ref: "Messages",
     localField: "_id",
@@ -114,9 +114,7 @@ userSchema.virtual("Messages", {
 
 
 
-
-
 //create model
 const User = mongoose.model("User", userSchema);
 
-export default User; 
+export default User;  

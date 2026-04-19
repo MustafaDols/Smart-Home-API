@@ -22,7 +22,7 @@ const app = express();
 const httpServer = http.createServer(app);
 
 const PORT = process.env.PORT || 3000;
-
+ 
 
 // Middlewares
 app.use(express.json());
@@ -49,10 +49,10 @@ app.use(
 app.use(helmet());
 app.use(generalLimiter);
 
-//Routes 
+//Routes  
 app.use("/users", userRouter);
-app.use("/homes", homeRouter);
-app.use("/devices", deviceRouter);
+app.use("/homes", homeRouter); 
+app.use("/devices", deviceRouter); 
 app.use("/alerts", alertRouter);
 app.use("/readings", readingRouter);
 app.use("/anomalies", anomalyRouter);

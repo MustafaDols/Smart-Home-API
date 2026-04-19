@@ -40,7 +40,6 @@ export const createDeviceService = async (req, res) => {
     });
 };
 
-
 export const getDevicesService = async (req, res) => {
 
     const devices = await Device.find({
@@ -52,7 +51,6 @@ export const getDevicesService = async (req, res) => {
         devices
     });
 };
-
 
 export const getDeviceService = async (req, res) => {
 
@@ -72,7 +70,6 @@ export const getDeviceService = async (req, res) => {
         device
     });
 };
-
 
 export const updateDeviceService = async (req, res) => {
 
@@ -94,7 +91,6 @@ export const updateDeviceService = async (req, res) => {
     });
 };
 
-
 export const deleteDeviceService = async (req, res) => {
 
     const { id } = req.params;
@@ -112,7 +108,6 @@ export const deleteDeviceService = async (req, res) => {
         message: "Device deleted successfully"
     });
 };
-
 
 export const updateDeviceStatusService = async (req, res) => {
 

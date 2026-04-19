@@ -8,22 +8,8 @@ const readingRouter = Router();
 
 readingRouter.use(authenticationMiddleware);
 
-readingRouter.post(
-    "/",
-    validationMiddleware(CreateReadingSchema),
-    readingServices.createReadingService
-);
-
-readingRouter.get(
-    "/:deviceId",
-    validationMiddleware(GetReadingsSchema),
-    readingServices.getReadingsService
-);
-
-readingRouter.get(
-    "/:deviceId/latest",
-    validationMiddleware(GetReadingsSchema),
-    readingServices.getLatestReadingService
-);
+readingRouter.post("/create", validationMiddleware(CreateReadingSchema), readingServices.createReadingService);
+readingRouter.get("/:deviceId", validationMiddleware(GetReadingsSchema), readingServices.getReadingsService);
+readingRouter.get("/:deviceId/latest", validationMiddleware(GetReadingsSchema), readingServices.getLatestReadingService);
 
 export default readingRouter;

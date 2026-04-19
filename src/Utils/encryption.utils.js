@@ -24,7 +24,7 @@ export const decrypt = (encryptData) => {
 
     const decipher = crypto.createDecipheriv('aes-256-cbc', ENCRYPTION_SECRET_KEY, binaryLikeIv);
 
-    let decryptedData = decipher.update(encryptedData, 'hex', 'utf-8');
+    let decryptedData = decipher.update(encryptedText, 'hex', 'utf-8');
 
     decryptedData += decipher.final('utf-8');
 

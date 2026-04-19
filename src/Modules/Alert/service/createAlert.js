@@ -1,5 +1,5 @@
 import Alert from "../../../DB/Models/alert.model.js";
-import { getIO } from "../../config/socket.js";
+import { getIO } from "../../../config/socket.js";
 
 export const createAlert = async ({
     userId,

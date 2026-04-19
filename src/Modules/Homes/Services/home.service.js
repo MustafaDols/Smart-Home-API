@@ -75,31 +75,3 @@ export const deleteHomeService = async (req, res) => {
     });
 }
 
-export const updateHomeService = async (req, res) => {
-
-    const { location } = req.params;
-    const { newOwnerId } = req.body;
-
-    const home = await Home.findOneAndUpdate(
-        {
-            location,
-            ownerId: req.loggedInUser.user._id
-        },
-        {
-            ownerId: newOwnerId
-        },
-        {
-            new: true
-        }
-    );
-
-    if (!home) {
-        return res.status(404).json({ message: "Home not found" });
-    }
-
-    return res.status(200).json({
-        message: "Home updated successfully",
-        home
-    });
-
-};

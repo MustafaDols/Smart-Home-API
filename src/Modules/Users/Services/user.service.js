@@ -6,6 +6,8 @@ import { generateToken } from "../../../Utils/tokens.utils.js";
 import { providerEnum } from "../../../Common/enums/user.enum.js";
 import { customAlphabet } from "nanoid"
 import { emitter } from "../../../Utils/send-email.utils.js"
+import BlackListedTokens from "../../../DB/Models/black-listed-tokens.model.js";
+
 
 const uniqueString = customAlphabet('1234567890abcdef', 5)
 
@@ -110,35 +112,47 @@ export const signinService = async (req, res) => {
 }
 
 
-export const listUsersService = async (req, res) => {
-}
-
-
 export const LogoutService = async (req, res) => {
-}
 
+    const { accesstoken } = req.headers;
+    const { token: { tokenId, expirationDate }, user: { _id } } = req.loggedInUser;
 
-export const RefreshTokenService = async (req, res) => {
-}
+    await BlackListedTokens.create({
+        token: accesstoken,
+        tokenId,
+        expirationDate: new Date(expirationDate * 1000),
+        userId: _id
+    });
+
+    return res.status(200).json({ message: "User logged out successfully" });
+};
 
 
 export const updatePasswordService = async (req, res) => {
-}
+    const { oldPassword, newPassword } = req.body;
+    const { user } = req.loggedInUser;
 
+    const dbUser = await User.findById(user._id);
+    const isPasswordMatch = compareSync(oldPassword, dbUser.password)
+    if (!isPasswordMatch) {
+        return res.status(404).json({ message: "User not found" });
+    }
+    dbUser.password = hashSync(newPassword, +process.env.SALT_ROUNDS);
+    await dbUser.save();
+
+    return res.status(200).json({ message: "Password updated successfully" });
+
+}
 
 
 export const forgotPasswordService = async (req, res) => {
 }
 
 
-
 export const authServiceWithGemail = async (req, res) => {
 }
 
 
-
-export const deleteExpiredTokensService = async (req, res) => {
-}
 
 
 

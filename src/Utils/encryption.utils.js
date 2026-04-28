@@ -3,7 +3,7 @@ import fs from "node:fs";
 
 const ENCRYPTION_SECRET_KEY = Buffer.from(process.env.ENCRYPTION_SECRET_KEY)
 const IV_LENGTH = process.env.IV_LENGTH
-
+ 
 export const encrypt = (text) => {
     const iv = crypto.randomBytes(IV_LENGTH);
 

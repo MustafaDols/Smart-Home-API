@@ -43,38 +43,35 @@ export const signUpService = async (req, res) => {
     emitter.emit('sendEmail', {
         to: email,
         subject: "Confirmation email",
-        content: ` Your confirmation otp is ${otp} `,
-        attachments: [
-            {
-                filename: "confirmation.png",
-                path: "confirmation.png"
-            }
-        ]
+        content: ` Your confirmation otp is ${otp} `
     })
     return res.status(201).json({ message: "User created successfully", user })
 }
 
 export const signinService = async (req, res) => {
-
     const { email, password } = req.body
     const user = await User.findOne({ email, provider: providerEnum.LOCAL })
 
     if (!user) {
-        return res.status(404).json({ message: "Invalid email or password " });
+        return res.status(404).json({ message: "Invalid email or password" });
     }
 
     const isPasswordMatch = compareSync(password, user.password)
 
     if (!isPasswordMatch) {
-        return res.status(404).json({ message: "Invalid email or password " });
+        return res.status(404).json({ message: "Invalid email or password" });
     }
+
+   
+    if (!user.isConfirmed) {
+        return res.status(403).json({ message: "Please confirm your email before signing in" });
+    }
+
 
     const accesstoken = generateToken(
         { _id: user._id, email: user.email },
         process.env.JWT_ACCESS_SECRET,
         {
-            // issuer: 'https://localhost:3000',
-            // audience: 'https://localhost:4000',
             expiresIn: process.env.JWT_ACCESS_EXPIRES_IN,
             jwtid: uuidv4()
         }
@@ -83,8 +80,6 @@ export const signinService = async (req, res) => {
         { _id: user._id, email: user.email },
         process.env.JWT_REFRESH_SECRET,
         {
-            // issuer: 'https://localhost:3000',
-            // audience: 'https://localhost:4000',
             expiresIn: process.env.JWT_REFRESH_EXPIRES_IN,
             jwtid: uuidv4()
         }
@@ -109,6 +104,40 @@ export const signinService = async (req, res) => {
         refreshtoken,
         user: safeUser
     })
+}
+
+export const confirmEmailService = async (req, res, next) => {
+
+    const { email, otp } = req.body
+    const user = await User.findOne({ email, isConfirmed: false })
+
+    if (!user) {
+        return next(new Error("User not found or already confirmed", { cause: 400 }))
+    }
+
+    const isOtpMatch = compareSync(otp, user.otps?.confirmation)
+    if (!isOtpMatch) {
+        return res.status(404).json({ message: "Invalid otp" });
+    }
+
+    user.isConfirmed = true
+    user.otps.confirmation = undefined
+
+    await user.save()
+
+    emitter.emit('sendEmail', {
+        to: email,
+        subject: "Welcome ",
+        attachments: [
+            {
+                filename: "confirmation.png",
+                path: "confirmation.png"
+            }
+        ]
+    })
+
+    return res.status(200).json({ message: "Email confirmed successfully" })
+   
 }
 
 

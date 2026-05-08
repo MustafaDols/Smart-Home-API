@@ -8,9 +8,9 @@ import { getIO } from "../../../config/socket.js";
 const SENSOR_KEYS = ["temp", "smoke", "gas", "power", "water_flow"];
 
 const anomalySeverityMap = {
-    fire: "critical", 
-    gas_leak: "critical",  
-    intrusion: "high",  
+    fire: "critical",
+    gas_leak: "critical",
+    intrusion: "high",
     water_leak: "medium",
     energy_anomaly: "medium",
     sensor_fault: "low"
@@ -107,7 +107,7 @@ export const createReadingService = async (req, res) => {
     try {
         const { data } = await axios.post(
             `${process.env.FASTAPI_URL}/predict`,
-            features
+            { deviceId, ...features }
         );
         fastapiResult = data;
     } catch (err) {
@@ -118,7 +118,7 @@ export const createReadingService = async (req, res) => {
         });
     }
 
-    const { isAnomaly, anomalyType } = fastapiResult;
+    const { isAnomaly, type: anomalyType } = fastapiResult;
 
     reading.isAnomaly = isAnomaly;
     reading.anomalyType = isAnomaly ? anomalyType : null;

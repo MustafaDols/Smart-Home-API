@@ -1,8 +1,8 @@
 import { compareSync, hashSync } from "bcrypt";
 import User from "../../../DB/Models/user.model.js";
-import { assymetricEncryption,assymetricDecryption } from "../../../Utils/encryption.utils.js";
+import { assymetricEncryption, assymetricDecryption } from "../../../Utils/encryption.utils.js";
 import { v4 as uuidv4 } from "uuid"
-import { generateToken } from "../../../Utils/tokens.utils.js";
+import { generateToken, verifyToken } from "../../../Utils/tokens.utils.js";
 import { providerEnum } from "../../../Common/enums/user.enum.js";
 import { customAlphabet } from "nanoid"
 import { emitter } from "../../../Utils/send-email.utils.js"
@@ -62,7 +62,7 @@ export const signinService = async (req, res) => {
         return res.status(404).json({ message: "Invalid email or password" });
     }
 
-   
+
     if (!user.isConfirmed) {
         return res.status(403).json({ message: "Please confirm your email before signing in" });
     }
@@ -86,7 +86,7 @@ export const signinService = async (req, res) => {
 
     )
 
-  const decryptedPhoneNumber = assymetricDecryption(user.phoneNumber)
+    const decryptedPhoneNumber = assymetricDecryption(user.phoneNumber)
 
     const safeUser = {
         fullname: user.fullname,
@@ -137,7 +137,7 @@ export const confirmEmailService = async (req, res, next) => {
     })
 
     return res.status(200).json({ message: "Email confirmed successfully" })
-   
+
 }
 
 
@@ -173,6 +173,21 @@ export const updatePasswordService = async (req, res) => {
 
 }
 
+export const RefreshTokenService = async (req, res) => {
+    const { refreshtoken } = req.headers
+
+    const decodedData = verifyToken(refreshtoken, process.env.JWT_REFRESH_SECRET)
+    const accesstoken = generateToken(
+        { _id: decodedData._id, email: decodedData.email },
+        process.env.JWT_ACCESS_SECRET,
+        {
+            expiresIn: process.env.JWT_ACCESS_EXPIRES_IN,
+            jwtid: uuidv4()
+        }
+    )
+    return res.status(200).json({ message: "User Token refreshed successfully", accesstoken })
+
+}
 
 export const forgotPasswordService = async (req, res) => {
 }

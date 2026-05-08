@@ -16,6 +16,7 @@ router.put("/confirm", userServices.confirmEmailService)
 router.post("/signin", authLimiter, userServices.signinService);
 router.post("/logout", authenticationMiddleware, userServices.LogoutService);
 router.put("/updatePassword", authenticationMiddleware, userServices.updatePasswordService); 
+router.post("/refresh-token", userServices.RefreshTokenService); 
 
 
 

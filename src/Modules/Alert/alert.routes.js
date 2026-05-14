@@ -14,6 +14,7 @@ alertRouter.get("/unread", alertController.getUnreadAlerts);
 alertRouter.get("/severity/:severity", alertController.getAlertsBySeverity);
 
 alertRouter.get("/device/:deviceId", alertController.getAlertsByDeviceId);
+alertRouter.get("/:id", alertController.getAlertById);
 
 alertRouter.patch("/:id/read", alertController.markAlertAsRead);
 alertRouter.patch("/:id/resolved", alertController.resolveAlert);

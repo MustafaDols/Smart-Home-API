@@ -21,6 +21,28 @@ export const getAllAlerts = async (req, res) => {
     }
 };
 
+export const getAlertById = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const userId = req.loggedInUser.user._id;
+
+        const alert = await Alert.findOne({ _id: id, userId })
+            .populate("deviceId", "name location")
+            .populate("homeId", "name");
+
+        if (!alert) {
+            return res.status(404).json({ message: "Alert not found or unauthorized" });
+        }
+
+        return res.status(200).json({
+            message: "Alert fetched successfully",
+            alert
+        });
+    } catch (error) {
+        return res.status(500).json({ message: "Error fetching alert", error: error.message });
+    }
+};
+
 export const getUnreadAlerts = async (req, res) => {
     try {
         const userId = req.loggedInUser.user._id;

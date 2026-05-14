@@ -4,6 +4,7 @@ import Anomaly from "../../../DB/Models/anomaly.model.js";
 import Alert from "../../../DB/Models/alert.model.js";
 import Device from "../../../DB/Models/device.model.js";
 import { getIO } from "../../../config/socket.js";
+import { createAlert } from "../../Alert/service/createAlert.js";
 
 const SENSOR_KEYS = ["temp", "smoke", "gas", "power", "water_flow"];
 
@@ -137,28 +138,13 @@ export const createReadingService = async (req, res) => {
             severity,
             detectedAt: new Date()
         });
-
-        const message = `${anomalyType.replace("_", " ")} detected in ${device.name} (${device.location})`;
-
-        alert = await Alert.create({
+        alert = await createAlert({
             userId: device.userId,
             homeId: device.homeId,
             deviceId,
-            anomalyId: anomaly._id,
-            anomalyType,
-            severity,
-            message
+            anomaly,
+            device
         });
-
-        try {
-            const io = getIO();
-            io.to(req.loggedInUser.user._id.toString()).emit("new_alert", {
-                alert,
-                anomaly
-            });
-        } catch (socketErr) {
-            console.error("Socket.io emit error:", socketErr.message);
-        }
     }
 
     return res.status(201).json({

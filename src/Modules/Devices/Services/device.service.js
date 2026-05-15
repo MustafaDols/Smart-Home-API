@@ -52,6 +52,30 @@ export const getDevicesService = async (req, res) => {
     });
 };
 
+export const getDevicesByHomeIdService = async (req, res) => {
+    const { homeId } = req.params;
+    const userId = req.loggedInUser.user._id;
+
+    const home = await Home.findOne({
+        _id: homeId,
+        ownerId: userId
+    }).lean();
+
+    if (!home) {
+        return res.status(404).json({ message: "Home not found or unauthorized" });
+    }
+
+    const devices = await Device.find({
+        homeId,
+        userId
+    }).populate("homeId", "name location").sort({ createdAt: -1 });
+
+    return res.status(200).json({
+        message: "Devices fetched successfully by home",
+        devices
+    });
+};
+
 export const getDeviceService = async (req, res) => {
 
     const { id } = req.params;

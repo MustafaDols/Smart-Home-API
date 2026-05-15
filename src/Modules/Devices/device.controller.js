@@ -10,6 +10,7 @@ deviceRouter.use(authenticationMiddleware);
 
 deviceRouter.post("/createDevice", validationMiddleware(DeviceSchema), deviceServices.createDeviceService);
 deviceRouter.get("/getDevices", deviceServices.getDevicesService);
+deviceRouter.get("/getDevicesByHome/:homeId", deviceServices.getDevicesByHomeIdService);
 deviceRouter.get("/getDevice/:id", deviceServices.getDeviceService);
 deviceRouter.put("/updateDevice/:id", deviceServices.updateDeviceService);
 deviceRouter.delete("/deleteDevice/:id", deviceServices.deleteDeviceService);

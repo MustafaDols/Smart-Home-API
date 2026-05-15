@@ -57,6 +57,24 @@ export const getHomeService = async (req, res) => {
     });
 }
 
+export const getHomeByIdService = async (req, res) => {
+    const { id } = req.params;
+
+    const home = await Home.findOne({
+        _id: id,
+        ownerId: req.loggedInUser.user._id
+    });
+
+    if (!home) {
+        return res.status(404).json({ message: "Home not found" });
+    }
+
+    return res.status(200).json({
+        message: "Home fetched successfully",
+        home
+    });
+}
+
 export const deleteHomeService = async (req, res) => {
 
     const { location } = req.params;
@@ -75,3 +93,19 @@ export const deleteHomeService = async (req, res) => {
     });
 }
 
+export const deleteHomeByIdService = async (req, res) => {
+    const { id } = req.params;
+
+    const home = await Home.findOneAndDelete({
+        _id: id,
+        ownerId: req.loggedInUser.user._id
+    });
+
+    if (!home) {
+        return res.status(404).json({ message: "Home not found" });
+    }
+
+    return res.status(200).json({
+        message: "Home deleted successfully"
+    });
+}

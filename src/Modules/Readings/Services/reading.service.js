@@ -5,6 +5,7 @@ import Alert from "../../../DB/Models/alert.model.js";
 import Device from "../../../DB/Models/device.model.js";
 import { getIO } from "../../../config/socket.js";
 import { createAlert } from "../../Alert/service/createAlert.js";
+import { emitSensorUpdateEvent } from "../../Dashboard/dashboard.events.js";
 
 const SENSOR_KEYS = ["temp", "smoke", "gas", "power", "water_flow"];
 
@@ -124,6 +125,27 @@ export const createReadingService = async (req, res) => {
     reading.isAnomaly = isAnomaly;
     reading.anomalyType = isAnomaly ? anomalyType : null;
     await reading.save();
+
+    emitSensorUpdateEvent(device.userId, {
+        device: {
+            deviceId: device._id,
+            name: device.name,
+            location: device.location
+        },
+        reading: {
+            readingId: reading._id,
+            ts: reading.ts,
+            temp: reading.temp,
+            smoke: reading.smoke,
+            gas: reading.gas,
+            power: reading.power,
+            motion: reading.motion,
+            door: reading.door,
+            water_flow: reading.water_flow,
+            isAnomaly: reading.isAnomaly,
+            anomalyType: reading.anomalyType
+        }
+    });
 
     let anomaly = null;
     let alert = null;

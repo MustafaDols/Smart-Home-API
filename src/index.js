@@ -9,6 +9,7 @@ import userRouter from "./Modules/Users/user.controller.js";
 import homeRouter from "./Modules/Homes/home.cotroller.js";
 import deviceRouter from "./Modules/Devices/device.controller.js";
 import alertRouter from "./Modules/Alert/alert.routes.js";
+import dashboardRouter from "./Modules/Dashboard/dashboard.routes.js";
 import readingRouter from "./Modules/Readings/reading.controller.js";
 import anomalyRouter from "./Modules/Anomalies/anomaly.controller.js";
 // DB
@@ -54,6 +55,7 @@ app.use("/users", userRouter);
 app.use("/homes", homeRouter);
 app.use("/devices", deviceRouter);
 app.use("/alerts", alertRouter);
+app.use("/dashboard", dashboardRouter);
 app.use("/readings", readingRouter);
 app.use("/anomalies", anomalyRouter);
 

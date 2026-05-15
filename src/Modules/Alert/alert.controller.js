@@ -3,6 +3,7 @@ import User from "../../DB/Models/user.model.js";
 
 import Device from "../../DB/Models/device.model.js";
 import { getIO } from "../../config/socket.js";
+import { emitDashboardUpdateEvent } from "../Dashboard/dashboard.events.js";
 
 export const getAllAlerts = async (req, res) => {
     try {
@@ -109,6 +110,11 @@ export const markAlertAsRead = async (req, res) => {
         const io = getIO();
         io.to(userId.toString()).emit("alert-updated", alert);
 
+        const unreadDelta = alert.isRead ? 0 : -1;
+        if (unreadDelta !== 0) {
+            emitDashboardUpdateEvent(userId, { unreadAlertCount: unreadDelta });
+        }
+
         return res.status(200).json({
             message: "Alert marked as read",
             alert
@@ -141,6 +147,11 @@ export const resolveAlert = async (req, res) => {
         const io = getIO();
         io.to(userId.toString()).emit("alert-resolved", alert);
 
+        emitDashboardUpdateEvent(userId, {
+            criticalAlertCount: alert.severity === "critical" ? -1 : 0,
+            resolvedAlertId: alert._id
+        });
+
         return res.status(200).json({
             message: "Alert resolved successfully",
             alert
@@ -165,6 +176,17 @@ export const deleteAlert = async (req, res) => {
 
         const io = getIO();
         io.to(userId.toString()).emit("alert-deleted", { alertId: id });
+
+        const unreadDelta = alert.isRead ? 0 : -1;
+        const criticalDelta = alert.severity === "critical" && !alert.isResolved ? -1 : 0;
+
+        if (unreadDelta !== 0 || criticalDelta !== 0) {
+            emitDashboardUpdateEvent(userId, {
+                unreadAlertCount: unreadDelta,
+                criticalAlertCount: criticalDelta,
+                deletedAlertId: id
+            });
+        }
 
         return res.status(200).json({
             message: "Alert deleted successfully"

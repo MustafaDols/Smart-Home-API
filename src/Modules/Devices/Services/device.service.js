@@ -1,5 +1,6 @@
 import Device from "../../../DB/Models/device.model.js";
 import Home from "../../../DB/Models/home.model.js";
+import { emitDashboardUpdateEvent, emitDeviceStatusChangedEvent } from "../../Dashboard/dashboard.events.js";
 
 
 export const createDeviceService = async (req, res) => {
@@ -61,13 +62,59 @@ export const getDeviceService = async (req, res) => {
         userId: req.loggedInUser.user._id
     }).populate("homeId", "name location");
 
-    if (!device) {
+    if (!updatedDevice) {
         return res.status(404).json({ message: "Device not found" });
     }
 
+    const statusOfDevice = (device) => {
+        if (!device.isActive) {
+            return "offline";
+        }
+
+        const staleMs = 1000 * 60 * 15;
+        const lastSeen = device.lastSeen ? device.lastSeen.getTime() : 0;
+        return Date.now() - lastSeen <= staleMs ? "online" : "stale";
+    };
+
+    const oldStatus = statusOfDevice(existingDevice);
+    const newStatus = statusOfDevice(updatedDevice);
+    const statusDelta = {};
+
+    if (oldStatus !== newStatus) {
+        const addMap = {
+            online: { activeDevicesCountDelta: 1 },
+            offline: { offlineDevicesCountDelta: 1 },
+            stale: { staleDeviceCountDelta: 1 }
+        };
+        const removeMap = {
+            online: { activeDevicesCountDelta: -1 },
+            offline: { offlineDevicesCountDelta: -1 },
+            stale: { staleDeviceCountDelta: -1 }
+        };
+
+        Object.assign(statusDelta, removeMap[oldStatus] || {}, addMap[newStatus] || {});
+    }
+
+    emitDeviceStatusChangedEvent(userId, {
+        device: {
+            deviceId: updatedDevice._id,
+            name: updatedDevice.name,
+            location: updatedDevice.location
+        },
+        isActive: updatedDevice.isActive,
+        lastSeen: updatedDevice.lastSeen,
+        status: newStatus
+    });
+
+    if (Object.keys(statusDelta).length) {
+        emitDashboardUpdateEvent(userId, {
+            deviceHealth: statusDelta
+        });
+    }
+
     return res.status(200).json({
-        message: "Device fetched successfully",
-        device
+        message: "Device status updated",
+        device: updatedDevice
     });
 };
 
@@ -112,15 +159,21 @@ export const deleteDeviceService = async (req, res) => {
 export const updateDeviceStatusService = async (req, res) => {
 
     const { deviceId } = req.body;
+    const userId = req.loggedInUser.user._id;
 
-    const device = await Device.findByIdAndUpdate(
+    const existingDevice = await Device.findOne({ _id: deviceId, userId }).lean();
+    if (!existingDevice) {
+        return res.status(404).json({ message: "Device not found or unauthorized" });
+    }
+
+    const updatedDevice = await Device.findByIdAndUpdate(
         deviceId,
         {
-            status: "online",
+            isActive: true,
             lastSeen: new Date()
         },
         { new: true }
-    );
+    ).lean();
 
     if (!device) {
         return res.status(404).json({ message: "Device not found" });

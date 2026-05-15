@@ -95,7 +95,8 @@ export const signinService = async (req, res) => {
         dateOfBirth: user.dateOfBirth,
         role: user.role,
         phoneNumber: decryptedPhoneNumber,
-        profilePicture: user.profilePicture
+        profilePicture: user.profilePicture,
+        unreadAlerts: user.unreadAlerts
     };
 
     return res.status(200).json({

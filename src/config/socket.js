@@ -1,60 +1,59 @@
 import { Server } from "socket.io";
 import { verifyToken } from "../Utils/tokens.utils.js";
 
-let io; 
+let io;
 
 export const initializeSocket = (httpServer) => {
   io = new Server(httpServer, {
     cors: {
-      origin: process.env.CLIENT_URL || "*",
+      origin: true,
       credentials: true,
-      methods: ["GET", "POST"]
     },
-    transports: ["websocket", "polling"],
-  
+    transports: ["websocket"],
   });
 
   io.use((socket, next) => {
-    const token = socket.handshake.auth?.token;
-
-    if (!token) {
-      return next(new Error("Unauthorized - No token"));
-    }
     try {
-      const decoded = verifyToken(token, process.env.JWT_ACCESS_SECRET);
+      const token = socket.handshake.auth?.token;
+
+      if (!token) {
+        return next(new Error("Unauthorized"));
+      }
+
+      const decoded = verifyToken(
+        token,
+        process.env.JWT_ACCESS_SECRET
+      );
+
       socket.user = decoded;
-      const userRoom = decoded._id.toString();
-      socket.join(userRoom);
+
       next();
     } catch (err) {
-      next(new Error("Unauthorized - Invalid token"));
+      next(new Error("Unauthorized"));
     }
   });
 
   io.on("connection", (socket) => {
-    console.log(`User connected: ${socket.id} | UserId: ${socket.user?._id}`);
+    console.log("CONNECTED:", socket.id);
 
-    socket.on("join-room", (roomId) => {
-      if (!socket.user || !roomId) return;
+    const userRoom = socket.user._id.toString();
 
-      if (!roomId || typeof roomId !== "string") return;
-      socket.join(roomId);
-    });
+    socket.join(userRoom);
 
-    socket.on("leave-room", (roomId) => {
-      socket.leave(roomId);
-    });
+    console.log("JOINED ROOM:", userRoom);
 
     socket.on("disconnect", () => {
-      console.log(`User disconnected: ${socket.id}`);
+      console.log("DISCONNECTED:", socket.id);
     });
   });
-
 
   return io;
 };
 
 export const getIO = () => {
-  if (!io) throw new Error("Socket not initialized");
+  if (!io) {
+    throw new Error("Socket not initialized");
+  }
+
   return io;
 };

@@ -62,6 +62,10 @@ const userSchema = new mongoose.Schema(
             enum: Object.values(RoleEnum),
             default: RoleEnum.USER
         },
+        unreadAlerts: {
+            type: Number,
+            default: 0
+        },
         provider: {
             type: String,
             enum: Object.values(providerEnum),

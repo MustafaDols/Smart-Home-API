@@ -90,7 +90,7 @@ const startServer = async () => {
     try {
         await dbConnection();
 
-        const server = httpServer.listen(PORT, () => {
+        const server = httpServer.listen(PORT,"0.0.0.0" ,() => {
             console.log(`Server is running on port ${PORT}`);
         });
 

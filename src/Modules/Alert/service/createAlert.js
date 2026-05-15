@@ -1,4 +1,5 @@
 import Alert from "../../../DB/Models/alert.model.js";
+import User from "../../../DB/Models/user.model.js";
 import { getIO } from "../../../config/socket.js";
 
 export const createAlert = async ({
@@ -26,6 +27,7 @@ export const createAlert = async ({
         severity: anomaly.severity,
         message
     });
+    await User.findByIdAndUpdate(userId, { $inc: { unreadAlerts: 1 } });
 
     const populatedAlert = await Alert.findById(alert._id)
         .populate("deviceId")

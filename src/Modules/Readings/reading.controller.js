@@ -9,6 +9,7 @@ const readingRouter = Router();
 readingRouter.use(authenticationMiddleware);
 
 readingRouter.post("/create", validationMiddleware(CreateReadingSchema), readingServices.createReadingService);
+readingRouter.get("/", readingServices.getAllReadingsService);
 readingRouter.get("/:deviceId", validationMiddleware(GetReadingsSchema), readingServices.getReadingsService);
 readingRouter.get("/:deviceId/latest", validationMiddleware(GetReadingsSchema), readingServices.getLatestReadingService);
 

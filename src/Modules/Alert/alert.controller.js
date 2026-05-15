@@ -1,4 +1,6 @@
 import Alert from "../../DB/Models/alert.model.js";
+import User from "../../DB/Models/user.model.js";
+
 import Device from "../../DB/Models/device.model.js";
 import { getIO } from "../../config/socket.js";
 
@@ -10,10 +12,11 @@ export const getAllAlerts = async (req, res) => {
             .populate("deviceId", "name location")
             .populate("homeId", "name")
             .sort({ createdAt: -1 });
-
+        const unreadCount = await User.findById(userId).select("unreadAlerts");
         return res.status(200).json({
             message: "Alerts fetched successfully",
             count: alerts.length,
+            unreadCount: unreadCount.unreadAlerts,
             alerts
         });
     } catch (error) {
@@ -98,6 +101,7 @@ export const markAlertAsRead = async (req, res) => {
             { new: true }
         ).populate("deviceId").populate("homeId");
 
+        const user = await User.findByIdAndUpdate(userId, { $inc: { unreadAlerts: -1 } }, { new: true });
         if (!alert) {
             return res.status(404).json({ message: "Alert not found or unauthorized" });
         }

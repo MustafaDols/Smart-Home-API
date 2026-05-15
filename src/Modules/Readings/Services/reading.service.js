@@ -178,6 +178,30 @@ export const getReadingsService = async (req, res) => {
     });
 };
 
+export const getAllReadingsService = async (req, res) => {
+    const userId = req.loggedInUser.user._id;
+
+    const userDevices = await Device.find({ userId }).lean();
+    if (!userDevices.length) {
+        return res.status(200).json({
+            message: "No devices found for this user",
+            count: 0,
+            readings: []
+        });
+    }
+
+    const deviceIds = userDevices.map((device) => device._id);
+    const readings = await Reading.find({ deviceId: { $in: deviceIds } })
+        .sort({ ts: -1 })
+        .lean();
+
+    return res.status(200).json({
+        message: "All readings fetched successfully for the authenticated user",
+        count: readings.length,
+        readings
+    });
+};
+
 export const getLatestReadingService = async (req, res) => {
     const { deviceId } = req.params;
 

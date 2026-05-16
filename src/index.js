@@ -11,6 +11,8 @@ import deviceRouter from "./Modules/Devices/device.controller.js";
 import alertRouter from "./Modules/Alert/alert.routes.js";
 import readingRouter from "./Modules/Readings/reading.controller.js";
 import anomalyRouter from "./Modules/Anomalies/anomaly.controller.js";
+import analyticsRouter from "./Modules/Analytics/analytics.routes.js";
+import DashboardRoutes from "./Modules/Dashboard/dashboard.routes.js"
 // DB
 import dbConnection from "./DB/db.connection.js";
 // Middlewares
@@ -56,6 +58,8 @@ app.use("/devices", deviceRouter);
 app.use("/alerts", alertRouter);
 app.use("/readings", readingRouter);
 app.use("/anomalies", anomalyRouter);
+app.use("/analytics", analyticsRouter);
+app.use("/dashboard", DashboardRoutes);
 
 // Error Handler
 app.use(async (error, req, res, next) => {

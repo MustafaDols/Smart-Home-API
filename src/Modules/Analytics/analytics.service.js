@@ -5,6 +5,7 @@ export const getAnalyticsService = async (req, res) => {
     const userId = req.loggedInUser.user._id;
     const { range = '24h' } = req.query; // '24h' | '7d' | '30d'
 
+
     const userDevices = await Device.find({ userId }).lean();
     const deviceIds = userDevices.map(d => d._id);
 

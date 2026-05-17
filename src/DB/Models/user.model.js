@@ -64,7 +64,8 @@ const userSchema = new mongoose.Schema(
         },
         unreadAlerts: {
             type: Number,
-            default: 0
+            default: 0,
+            min: 0
         },
         provider: {
             type: String,
@@ -107,7 +108,7 @@ const userSchema = new mongoose.Schema(
 });
 
 //Compound index Schema level
-userSchema.index({ firstname: 1, lastname: 1 },{ name: "idx_first_last_name"});
+userSchema.index({ firstname: 1, lastname: 1 }, { name: "idx_first_last_name" });
 
 //create virtuals  
 userSchema.virtual("Messages", {

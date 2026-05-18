@@ -7,7 +7,7 @@ export const createAlert = async ({
     homeId,
     deviceId,
     anomaly,
-    device
+    device,reading
 }) => {
 
     if (!userId) {
@@ -39,9 +39,13 @@ export const createAlert = async ({
 
         const room = userId.toString();
 
+        const updatedUser = await User.findById(userId)
+            .select("unreadAlerts");
+
         io.to(room).emit("new_alert", {
             alert: populatedAlert,
-            anomaly
+            reading ,
+            unreadAlerts: updatedUser.unreadAlerts
         });
 
     } catch (socketErr) {

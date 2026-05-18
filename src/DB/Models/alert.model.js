@@ -53,12 +53,16 @@ const alertSchema = new mongoose.Schema({
 }, {
     timestamps: { createdAt: true, updatedAt: false }
 });
+alertSchema.index({ userId: 1, createdAt: -1 });
+
 alertSchema.index({ userId: 1, isRead: 1 });
+
 alertSchema.index({ deviceId: 1 });
-alertSchema.index({ createdAt: -1 });
+
+alertSchema.index({ severity: 1 });
 
 //create model
 const Alert = mongoose.model("Alert", alertSchema);
 
-export default Alert ;  
-  
+export default Alert;
+

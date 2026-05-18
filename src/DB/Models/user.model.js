@@ -71,7 +71,14 @@ const userSchema = new mongoose.Schema(
             type: String,
             enum: Object.values(providerEnum),
             default: providerEnum.LOCAL
-        }, profilePicture: {
+        },
+
+        googleSub: {
+            type: String,
+            unique: true
+        },
+
+        profilePicture: {
             secure_url: String,
             public_id: String
         }
@@ -82,10 +89,6 @@ const userSchema = new mongoose.Schema(
     },
     toObject: {
         virtuals: true
-    },
-    googleSub: {
-        type: String,
-        unique: true
     },
     virtuals: {
         fullname: {

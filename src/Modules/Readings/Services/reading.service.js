@@ -2,7 +2,9 @@ import axios from "axios";
 import Reading from "../../../DB/Models/reading.model.js";
 import Anomaly from "../../../DB/Models/anomaly.model.js";
 import Device from "../../../DB/Models/device.model.js";
+import { getIO } from "../../../config/socket.js";
 import { createAlert } from "../../Alert/service/createAlert.js";
+import { shouldEmit } from "../../Alert/service/shouldEmit.js";
 
 const SENSOR_KEYS = ["temp", "smoke", "gas", "power", "water_flow"];
 
@@ -127,6 +129,7 @@ export const createReadingService = async (req, res) => {
     let alert = null;
 
     if (isAnomaly && anomalyType) {
+        // ── Anomaly: createAlert handles the socket emit (with reading) ──
         const severity = anomalySeverityMap[anomalyType] ?? "low";
 
         anomaly = await Anomaly.create({
@@ -136,13 +139,27 @@ export const createReadingService = async (req, res) => {
             severity,
             detectedAt: new Date()
         });
+
         alert = await createAlert({
             userId: device.userId,
             homeId: device.homeId,
             deviceId,
             anomaly,
-            device
+            device,
+            reading
         });
+    } else {
+        // ── Normal reading: emit only if shouldEmit passes ──
+        const sensorSnapshot = { temp, smoke, gas, power, water_flow };
+
+        if (shouldEmit(deviceId, sensorSnapshot)) {
+            try {
+                const io = getIO();
+                io.to(device.userId.toString()).emit("new_reading", { reading });
+            } catch (socketErr) {
+                console.error("Socket emit error:", socketErr.message);
+            }
+        }
     }
 
     return res.status(201).json({

@@ -8,11 +8,11 @@ export const getAllAlerts = async (req, res) => {
     try {
         const userId = req.loggedInUser.user._id;
 
-        const alerts = await Alert.find({ userId })
-            .populate("deviceId", "name location")
+        const alerts = await Alert.find({ userId , isResolved: false}).populate("deviceId", "name location")
             .populate("homeId", "name")
             .sort({ createdAt: -1 });
         const unreadCount = await User.findById(userId).select("unreadAlerts");
+
         return res.status(200).json({
             message: "Alerts fetched successfully",
             count: alerts.length,
@@ -29,7 +29,7 @@ export const getAlertById = async (req, res) => {
         const { id } = req.params;
         const userId = req.loggedInUser.user._id;
 
-        const alert = await Alert.findOne({ _id: id, userId })
+        const alert = await Alert.findOne({ _id: id, userId , isResolved: false})
             .populate("deviceId", "name location")
             .populate("homeId", "name");
 
@@ -70,12 +70,12 @@ export const getAlertsByDeviceId = async (req, res) => {
         const { deviceId } = req.params;
         const userId = req.loggedInUser.user._id;
 
-        const device = await Device.findOne({ _id: deviceId, userId });
+        const device = await Device.findOne({ _id: deviceId, userId, isResolved: false });
         if (!device) {
             return res.status(404).json({ message: "Device not found or unauthorized" });
         }
 
-        const alerts = await Alert.find({ deviceId, userId })
+        const alerts = await Alert.find({ deviceId, userId , isResolved: false})
             .populate("deviceId", "name location")
             .populate("homeId", "name")
             .sort({ createdAt: -1 });
@@ -96,28 +96,68 @@ export const markAlertAsRead = async (req, res) => {
         const userId = req.loggedInUser.user._id;
 
         const alert = await Alert.findOneAndUpdate(
-            { _id: id, userId },
-            { isRead: true },
-            { new: true }
-        ).populate("deviceId").populate("homeId");
+            {
+                _id: id,
+                userId,
+                isRead: false,
+            },
+            {
+                $set: {
+                    isRead: true,
+                },
+            },
+            {
+                new: true,
+            }
+        )
+            .populate("deviceId", "name location")
+            .populate("homeId", "name");
 
-        const user = await User.findByIdAndUpdate(userId, { $inc: { unreadAlerts: -1 } }, { new: true });
         if (!alert) {
-            return res.status(404).json({ message: "Alert not found or unauthorized" });
+            return res.status(404).json({
+                message: "Alert not found or already read",
+            });
         }
 
+        const updatedUser = await User.findOneAndUpdate(
+            {
+                _id: userId,
+                unreadAlerts: { $gt: 0 },
+            },
+            {
+                $inc: {
+                    unreadAlerts: -1,
+                },
+            },
+            {
+                new: true,
+                select: "unreadAlerts",
+            }
+        );
+
         const io = getIO();
-        io.to(userId.toString()).emit("alert-updated", alert);
+
+        io.to(userId.toString()).emit(
+            "alert-updated",
+            {
+                alert,
+                unreadAlerts: updatedUser.unreadAlerts
+            }
+        );
 
         return res.status(200).json({
             message: "Alert marked as read",
-            alert
+            alert,
+            unreadAlerts: updatedUser.unreadAlerts
         });
+
     } catch (error) {
-        return res.status(500).json({ message: "Error marking alert as read", error: error.message });
+        return res.status(500).json({
+            message: "Error marking alert as read",
+            error: error.message,
+        });
     }
 };
-
 
 export const resolveAlert = async (req, res) => {
     try {
@@ -156,13 +196,31 @@ export const deleteAlert = async (req, res) => {
         const { id } = req.params;
         const userId = req.loggedInUser.user._id;
 
-        const alert = await Alert.findOneAndDelete({ _id: id, userId });
+        const alert = await Alert.findOneAndDelete({
+            _id: id,
+            userId
+        });
 
         if (!alert) {
-            return res.status(404).json({ message: "Alert not found or unauthorized" });
+            return res.status(404).json({
+                message: "Alert not found or unauthorized"
+            });
         }
 
-
+        // لو unread نقص العداد
+        if (!alert.isRead) {
+            await User.updateOne(
+                {
+                    _id: userId,
+                    unreadAlerts: { $gt: 0 }
+                },
+                {
+                    $inc: {
+                        unreadAlerts: -1
+                    }
+                }
+            );
+        }
         const io = getIO();
         io.to(userId.toString()).emit("alert-deleted", { alertId: id });
 
@@ -185,9 +243,9 @@ export const getAlertsBySeverity = async (req, res) => {
             return res.status(400).json({ message: "Invalid severity level" });
         }
 
-        const alerts = await Alert.find({ userId, severity })
+        const alerts = await Alert.find({ userId, severity , isResolved: false})
             .populate("deviceId", "name location")
-            .populate("homeId", "name")
+            .populate("homeId", "name location")
             .sort({ createdAt: -1 });
 
         return res.status(200).json({

@@ -198,8 +198,138 @@ export const authServiceWithGemail = async (req, res) => {
 }
 
 
+export const addEmergencyContactService = async (req, res) => {
+
+    const { name, phone } = req.body;
+
+    const { user } = req.loggedInUser;
+
+    const dbUser = await User.findById(user._id);
+
+    if (!dbUser) {
+        return res.status(404).json({
+            message: "User not found"
+        });
+    }
+
+    const alreadyExists = dbUser.emergencyContacts.some(
+        (contact) => contact.phone === phone
+    );
+
+    if (alreadyExists) {
+        return res.status(409).json({
+            message: "Phone number already exists"
+        });
+    }
+
+    dbUser.emergencyContacts.push({
+        name,
+        phone
+    });
+
+    await dbUser.save();
+
+    return res.status(201).json({
+        message: "Emergency contact added successfully",
+        emergencyContacts: dbUser.emergencyContacts
+    });
+};
 
 
 
 
+export const updateEmergencyContactService = async (req, res) => {
 
+    const { contactId } = req.params;
+
+    const { name, phone } = req.body;
+
+    const { user } = req.loggedInUser;
+
+    const dbUser = await User.findById(user._id);
+
+    if (!dbUser) {
+        return res.status(404).json({
+            message: "User not found"
+        });
+    }
+
+    const contact = dbUser.emergencyContacts.id(contactId);
+
+    if (!contact) {
+        return res.status(404).json({
+            message: "Emergency contact not found"
+        });
+    }
+
+    const duplicatePhone = dbUser.emergencyContacts.some(
+        (item) =>
+            item.phone === phone &&
+            item._id.toString() !== contactId
+    );
+
+    if (duplicatePhone) {
+        return res.status(409).json({
+            message: "Phone number already exists"
+        });
+    }
+
+    contact.name = name || contact.name;
+    contact.phone = phone || contact.phone;
+
+    await dbUser.save();
+
+    return res.status(200).json({
+        message: "Emergency contact updated successfully",
+        emergencyContacts: dbUser.emergencyContacts
+    });
+};
+
+export const deleteEmergencyContactService = async (req, res) => {
+
+    const { contactId } = req.params;
+
+    const { user } = req.loggedInUser;
+
+    const dbUser = await User.findById(user._id);
+
+    if (!dbUser) {
+        return res.status(404).json({
+            message: "User not found"
+        });
+    }
+
+    const contact = dbUser.emergencyContacts.id(contactId);
+
+    if (!contact) {
+        return res.status(404).json({
+            message: "Emergency contact not found"
+        });
+    }
+
+    contact.deleteOne();
+
+    await dbUser.save();
+
+    return res.status(200).json({
+        message: "Emergency contact deleted successfully",
+        emergencyContacts: dbUser.emergencyContacts
+    });
+};
+
+export const getEmergencyContactsService = async (req, res) => {
+  const { user } = req.loggedInUser;
+
+  const dbUser = await User.findById(user._id).select("emergencyContacts");
+
+  if (!dbUser) {
+    return res.status(404).json({
+      message: "User not found",
+    });
+  }
+
+  return res.status(200).json({
+    message: "Emergency contacts fetched successfully",
+    emergencyContacts: dbUser.emergencyContacts,
+  });
+};

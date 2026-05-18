@@ -77,6 +77,34 @@ const userSchema = new mongoose.Schema(
             type: String,
             unique: true
         },
+        
+        emergencyContacts: {
+            type: [
+                {
+                    name: {
+                        type: String,
+                        required: true,
+                        trim: true
+                    },
+
+                    phone: {
+                        type: String,
+                        required: true,
+                        trim: true
+                    }
+                }
+            ],
+
+            default: [],
+
+            validate: {
+                validator: function (contacts) {
+                    return contacts.length <= 5;
+                },
+
+                message: "Maximum 5 emergency contacts allowed"
+            }
+        },
 
         profilePicture: {
             secure_url: String,

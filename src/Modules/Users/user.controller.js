@@ -15,10 +15,13 @@ router.post("/signup", authLimiter, validationMiddleware(SignUpSchema), userServ
 router.put("/confirm", userServices.confirmEmailService)
 router.post("/signin", authLimiter, userServices.signinService);
 router.post("/logout", authenticationMiddleware, userServices.LogoutService);
-router.put("/updatePassword", authenticationMiddleware, userServices.updatePasswordService); 
-router.post("/refresh-token", userServices.RefreshTokenService); 
+router.put("/updatePassword", authenticationMiddleware, userServices.updatePasswordService);
+router.post("/refresh-token", userServices.RefreshTokenService);
 
-
+router.post("/emergency-contacts",authenticationMiddleware,userServices.addEmergencyContactService);
+router.put("/emergency-contacts/:contactId",authenticationMiddleware,userServices.updateEmergencyContactService);
+router.delete("/emergency-contacts/:contactId",authenticationMiddleware,userServices.deleteEmergencyContactService);
+router.get("/emergency-contacts",authenticationMiddleware,userServices.getEmergencyContactsService);
 
 
 export default router;

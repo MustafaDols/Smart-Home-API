@@ -1,3 +1,4 @@
+import Device from "../../../DB/Models/device.model.js";
 import Home from "../../../DB/Models/home.model.js";
 
 export const createHomeService = async (req, res) => {
@@ -104,6 +105,8 @@ export const deleteHomeByIdService = async (req, res) => {
     if (!home) {
         return res.status(404).json({ message: "Home not found" });
     }
+
+    await Device.deleteMany({ homeId: id });
 
     return res.status(200).json({
         message: "Home deleted successfully"

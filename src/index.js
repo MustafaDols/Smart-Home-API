@@ -11,8 +11,9 @@ import deviceRouter from "./Modules/Devices/device.controller.js";
 import alertRouter from "./Modules/Alert/alert.routes.js";
 import readingRouter from "./Modules/Readings/reading.controller.js";
 import anomalyRouter from "./Modules/Anomalies/anomaly.controller.js";
-import analyticsRouter from "./Modules/Analytics/analytics.routes.js";
-import DashboardRoutes from "./Modules/Dashboard/dashboard.routes.js"
+import analyticsRouter from "./Modules/Analytics/analytics.routes.js"; 
+import DashboardRoutes from "./Modules/Dashboard/dashboard.routes.js";
+import faceRouter from "./Modules/Face/face.controller.js";
 // DB
 import dbConnection from "./DB/db.connection.js";
 // Middlewares
@@ -60,6 +61,7 @@ app.use("/readings", readingRouter);
 app.use("/anomalies", anomalyRouter);
 app.use("/analytics", analyticsRouter);
 app.use("/dashboard", DashboardRoutes);
+app.use("/face", faceRouter);
 
 // Error Handler
 app.use(async (error, req, res, next) => {
@@ -94,7 +96,7 @@ const startServer = async () => {
     try {
         await dbConnection();
 
-        const server = httpServer.listen(PORT,"0.0.0.0" ,() => {
+        const server = httpServer.listen(PORT, "0.0.0.0", () => {
             console.log(`Server is running on port ${PORT}`);
         });
 

@@ -62,7 +62,7 @@ app.use("/anomalies", anomalyRouter);
 app.use("/analytics", analyticsRouter);
 app.use("/dashboard", DashboardRoutes);
 app.use("/face", faceRouter);
-
+ 
 // Error Handler
 app.use(async (error, req, res, next) => {
     try {

@@ -5,8 +5,6 @@ const anomalySchema = new mongoose.Schema(
         readingId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "Reading",
-            required: true,
-            unique: true,
         },
 
         deviceId: {
@@ -48,4 +46,4 @@ const anomalySchema = new mongoose.Schema(
 //create model
 const Anomaly = mongoose.model("Anomaly", anomalySchema);
 
-export default Anomaly;  
+export default Anomaly;

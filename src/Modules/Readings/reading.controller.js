@@ -6,9 +6,9 @@ import * as readingServices from "./Services/reading.service.js";
 
 const readingRouter = Router();
 
-readingRouter.use(authenticationMiddleware);
 
 readingRouter.post("/create", validationMiddleware(CreateReadingSchema), readingServices.createReadingService);
+readingRouter.use(authenticationMiddleware);
 readingRouter.get("/", readingServices.getAllReadingsService);
 readingRouter.get("/:deviceId", validationMiddleware(GetReadingsSchema), readingServices.getReadingsService);
 readingRouter.get("/:deviceId/latest", validationMiddleware(GetReadingsSchema), readingServices.getLatestReadingService);

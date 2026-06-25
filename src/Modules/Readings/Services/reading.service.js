@@ -82,7 +82,7 @@ export const createReadingService = async (req, res) => {
 
     const device = await Device.findOne({
         _id: deviceId,
-        userId: req.loggedInUser.user._id
+      
     }).lean();
 
     if (!device) {

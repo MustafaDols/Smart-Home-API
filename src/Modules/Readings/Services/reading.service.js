@@ -31,42 +31,50 @@ function buildFeatures(current, history) {
         water_flow: current.water_flow
     };
 
+    const now = new Date();
+    const time = {
+        hour: now.getHours(),
+        day: now.getDate(),
+        dayofweek: now.getDay(),
+        is_night: now.getHours() >= 23 || now.getHours() <= 5 ? 1 : 0
+    };
+
     const lag = {};
     for (const key of SENSOR_KEYS) {
         lag[`${key}_lag1`] = get(0, key);
         lag[`${key}_lag2`] = get(1, key);
     }
 
+
     const rolling = {};
     for (const key of SENSOR_KEYS) {
-        const window = [current[key], ...history.slice(0, 4).map((r) => r[key])];
-        const mean = window.reduce((s, v) => s + v, 0) / window.length;
+        const window = history.slice(0, 5).map((r) => r[key]);
+        const usableWindow = window.length > 0 ? window : [current[key]];
+
+        const mean =
+            usableWindow.reduce((s, v) => s + v, 0) / usableWindow.length;
+
         const std =
-            window.length < 2
+            usableWindow.length < 2
                 ? 0
                 : Math.sqrt(
-                    window.reduce((s, v) => s + Math.pow(v - mean, 2), 0) /
-                    window.length
+                    usableWindow.reduce((s, v) => s + Math.pow(v - mean, 2), 0) /
+                    usableWindow.length
                 );
+
         rolling[`${key}_roll_mean`] = mean;
         rolling[`${key}_roll_std`] = std;
     }
 
     const interaction = {
-        temp_x_smoke: current.temp * current.smoke,
-        gas_x_power: current.gas * current.power,
-        motion_x_door: current.motion * current.door
+        motion_door: current.motion * current.door,
+        high_power: current.power > 400 ? 1 : 0,
+        high_smoke: current.smoke > 10 ? 1 : 0,
+        smoke_gas_ratio: current.smoke / (current.gas + 1),
+        temp_power_ratio: current.temp / (current.power + 1)
     };
 
-    const now = new Date();
-    const hour = now.getHours();
-    const time = {
-        hour,
-        day_of_week: now.getDay(),
-        is_night: hour < 6 || hour >= 22 ? 1 : 0
-    };
-
-    return { ...base, ...lag, ...rolling, ...interaction, ...time };
+    return { ...base, ...time, ...lag, ...rolling, ...interaction };
 }
 
 export const createReadingService = async (req, res) => {
@@ -93,10 +101,10 @@ export const createReadingService = async (req, res) => {
         ts: new Date()
     });
 
-    const history = await Reading.find({ deviceId })
+    
+    const history = await Reading.find({ deviceId, _id: { $ne: reading._id } })
         .sort({ ts: -1 })
-        .skip(1)
-        .limit(4)
+        .limit(5)
         .lean();
 
     const features = buildFeatures(
@@ -129,7 +137,6 @@ export const createReadingService = async (req, res) => {
     let alert = null;
 
     if (isAnomaly && anomalyType) {
-        // ── Anomaly: createAlert handles the socket emit (with reading) ──
         const severity = anomalySeverityMap[anomalyType] ?? "low";
 
         anomaly = await Anomaly.create({
@@ -149,7 +156,6 @@ export const createReadingService = async (req, res) => {
             reading
         });
     } else {
-        // ── Normal reading: emit only if shouldEmit passes ──
         const sensorSnapshot = { temp, smoke, gas, power, water_flow };
 
         if (shouldEmit(deviceId, sensorSnapshot)) {

@@ -4,6 +4,7 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import http from "http";
+
 // Routers
 import userRouter from "./Modules/Users/user.controller.js";
 import homeRouter from "./Modules/Homes/home.cotroller.js";
@@ -11,13 +12,16 @@ import deviceRouter from "./Modules/Devices/device.controller.js";
 import alertRouter from "./Modules/Alert/alert.routes.js";
 import readingRouter from "./Modules/Readings/reading.controller.js";
 import anomalyRouter from "./Modules/Anomalies/anomaly.controller.js";
-import analyticsRouter from "./Modules/Analytics/analytics.routes.js"; 
+import analyticsRouter from "./Modules/Analytics/analytics.routes.js";
 import DashboardRoutes from "./Modules/Dashboard/dashboard.routes.js";
 import faceRouter from "./Modules/Face/face.controller.js";
+
 // DB
 import dbConnection from "./DB/db.connection.js";
+
 // Middlewares
 import { generalLimiter } from "./Middlewares/rate-limiter.middleware.js";
+
 // Socket
 import { initializeSocket } from "./config/socket.js";
 
@@ -26,66 +30,13 @@ const httpServer = http.createServer(app);
 
 const PORT = process.env.PORT || 3000;
 
-
-// // Middlewares
-// app.use(express.json());
-// app.use("/uploads", express.static("uploads"));
-
-// // CORS
-// const whitelist = process.env.WHITE_LISTED_ORIGINS
-//     ? process.env.WHITE_LISTED_ORIGINS.split(",")
-//     : [];
-
-// app.use(
-//     cors({
-//         origin: function (origin, callback) {
-//             if (!origin || whitelist.includes(origin)) {
-//                 callback(null, true);
-//             } else {
-//                 callback(new Error("Not allowed by CORS"));
-//             }
-//         },
-//     })
-// );
-
-// // Security 
-// app.use(helmet());
-// app.use(generalLimiter);
-
-// Middlewares
+// Basic Middlewares
 app.use(express.json());
 app.use("/uploads", express.static("uploads"));
 
-// CORS
-// CORS
-const whitelist = (process.env.WHITE_LISTED_ORIGINS || "")
-    .split(",")
-    .map((origin) => origin.trim().replace(/^['"]|['"]$/g, ""))
-    .filter(Boolean);
-
+// CORS - open for APK / Expo / Web testing
 const corsOptions = {
-    origin(origin, callback) {
-        console.log("Request Origin:", origin);
-
-        // Important for React Native APK, Postman, mobile native requests
-        // Native mobile requests usually do not send Origin
-        if (!origin) {
-            return callback(null, true);
-        }
-
-        // Allow whitelisted web / expo dev origins
-        if (whitelist.includes(origin)) {
-            return callback(null, true);
-        }
-
-        // Allow Expo dev origins
-        if (origin.startsWith("exp://")) {
-            return callback(null, true);
-        }
-
-        return callback(new Error(`Not allowed by CORS: ${origin}`));
-    },
-
+    origin: true,
     credentials: true,
 
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
@@ -96,6 +47,9 @@ const corsOptions = {
         "accesstoken",
         "refreshtoken",
         "refreshToken",
+        "Accept",
+        "Origin",
+        "X-Requested-With",
     ],
 };
 
@@ -106,9 +60,7 @@ app.options(/.*/, cors(corsOptions));
 app.use(helmet());
 app.use(generalLimiter);
 
-
-
-//Routes  
+// Routes
 app.use("/users", userRouter);
 app.use("/homes", homeRouter);
 app.use("/devices", deviceRouter);
@@ -118,7 +70,7 @@ app.use("/anomalies", anomalyRouter);
 app.use("/analytics", analyticsRouter);
 app.use("/dashboard", DashboardRoutes);
 app.use("/face", faceRouter);
- 
+
 // Error Handler
 app.use(async (error, req, res, next) => {
     try {

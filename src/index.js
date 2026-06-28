@@ -57,6 +57,7 @@ app.use(express.json());
 app.use("/uploads", express.static("uploads"));
 
 // CORS
+// CORS
 const whitelist = (process.env.WHITE_LISTED_ORIGINS || "")
     .split(",")
     .map((origin) => origin.trim().replace(/^['"]|['"]$/g, ""))
@@ -66,14 +67,18 @@ const corsOptions = {
     origin(origin, callback) {
         console.log("Request Origin:", origin);
 
+        // Important for React Native APK, Postman, mobile native requests
+        // Native mobile requests usually do not send Origin
         if (!origin) {
             return callback(null, true);
         }
 
+        // Allow whitelisted web / expo dev origins
         if (whitelist.includes(origin)) {
             return callback(null, true);
         }
 
+        // Allow Expo dev origins
         if (origin.startsWith("exp://")) {
             return callback(null, true);
         }
@@ -82,7 +87,9 @@ const corsOptions = {
     },
 
     credentials: true,
+
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+
     allowedHeaders: [
         "Content-Type",
         "Authorization",

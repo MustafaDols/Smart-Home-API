@@ -27,30 +27,79 @@ const httpServer = http.createServer(app);
 const PORT = process.env.PORT || 3000;
 
 
+// // Middlewares
+// app.use(express.json());
+// app.use("/uploads", express.static("uploads"));
+
+// // CORS
+// const whitelist = process.env.WHITE_LISTED_ORIGINS
+//     ? process.env.WHITE_LISTED_ORIGINS.split(",")
+//     : [];
+
+// app.use(
+//     cors({
+//         origin: function (origin, callback) {
+//             if (!origin || whitelist.includes(origin)) {
+//                 callback(null, true);
+//             } else {
+//                 callback(new Error("Not allowed by CORS"));
+//             }
+//         },
+//     })
+// );
+
+// // Security 
+// app.use(helmet());
+// app.use(generalLimiter);
+
 // Middlewares
 app.use(express.json());
 app.use("/uploads", express.static("uploads"));
 
 // CORS
-const whitelist = process.env.WHITE_LISTED_ORIGINS
-    ? process.env.WHITE_LISTED_ORIGINS.split(",")
-    : [];
+const whitelist = (process.env.WHITE_LISTED_ORIGINS || "")
+    .split(",")
+    .map((origin) => origin.trim().replace(/^['"]|['"]$/g, ""))
+    .filter(Boolean);
 
-app.use(
-    cors({
-        origin: function (origin, callback) {
-            if (!origin || whitelist.includes(origin)) {
-                callback(null, true);
-            } else {
-                callback(new Error("Not allowed by CORS"));
-            }
-        },
-    })
-);
+const corsOptions = {
+    origin(origin, callback) {
+        console.log("Request Origin:", origin);
 
-// Security 
+        if (!origin) {
+            return callback(null, true);
+        }
+
+        if (whitelist.includes(origin)) {
+            return callback(null, true);
+        }
+
+        if (origin.startsWith("exp://")) {
+            return callback(null, true);
+        }
+
+        return callback(new Error(`Not allowed by CORS: ${origin}`));
+    },
+
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: [
+        "Content-Type",
+        "Authorization",
+        "accesstoken",
+        "refreshtoken",
+        "refreshToken",
+    ],
+};
+
+app.use(cors(corsOptions));
+app.options(/.*/, cors(corsOptions));
+
+// Security
 app.use(helmet());
 app.use(generalLimiter);
+
+
 
 //Routes  
 app.use("/users", userRouter);

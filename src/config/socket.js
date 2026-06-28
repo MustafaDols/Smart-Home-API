@@ -16,9 +16,7 @@ export const initializeSocket = (httpServer) => {
     try {
       const token = socket.handshake.auth?.token;
 
-      if (!token) {
-        return next(new Error("Unauthorized"));
-      }
+      if (!token) {return next(new Error("Unauthorized"));}                                        
 
       const decoded = verifyToken(
         token,

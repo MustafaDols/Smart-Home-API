@@ -8,15 +8,14 @@ import Device from "../../../DB/Models/device.model.js";
 import Anomaly from "../../../DB/Models/anomaly.model.js";
 import RegisteredFace from "../../../DB/Models/registeredFace.model.js";
 
-const FLASK_URL = process.env.FLASK_URL || "http://localhost:7000";
+const FLASK_URL = process.env.FLASK_URL ;
 
 export const registerFaceService = async (req, res) => {
     try {
         const { name } = req.body;
         const file = req.file;
         const userId = req.loggedInUser.user._id;
-
-        if (!file) return res.status(400).json({ success: false, message: "No file uploaded" });
+        if (!file) { return res.status(400).json({ success: false, message: "No file uploaded" });}
         if (!name) return res.status(400).json({ success: false, message: "Name is required" });
 
         const trimmedName = name.trim();
@@ -69,7 +68,7 @@ export const verifyFaceService = async (req, res) => {
         if (!file) return res.status(400).json({ success: false, message: "No file uploaded" });
         if (!deviceId) return res.status(400).json({ success: false, message: "deviceId is required" });
 
-
+       
         const deviceData = await Device.findById(deviceId);
         if (!deviceData || !deviceData.homeId) {
             return res.status(404).json({ success: false, message: "Device or associated Home not found" });
